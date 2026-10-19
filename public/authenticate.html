@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4f7fb" />
+  <title>Sign in</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      display: grid;
+      min-height: 100vh;
+      margin: 0;
+      place-items: center;
+      padding: 24px;
+      background: #f4f7fb;
+      color: #202938;
+      font: 15px/1.5 system-ui, sans-serif;
+    }
+
+    .login-card {
+      width: min(100%, 420px);
+      padding: 40px;
+      border: 1px solid #e3e8ef;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 12px 36px #172b4d12;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.75rem;
+      letter-spacing: -0.03em;
+    }
+
+    .intro {
+      margin: 8px 0 28px;
+      color: #667085;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 7px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      min-height: 46px;
+      padding: 11px 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      color: inherit;
+      font: inherit;
+    }
+
+    input::placeholder {
+      color: #98a2b3;
+    }
+
+    input:focus-visible {
+      border-color: #3974e8;
+      outline: 3px solid #3974e833;
+    }
+
+    button {
+      width: 100%;
+      min-height: 46px;
+      margin-top: 26px;
+      border: 0;
+      border-radius: 8px;
+      background: #245fdb;
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #194db9;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #3974e866;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 30px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="login-card">
+    <h1 id="heading1"></h1>
+    <p class="intro">Sign in with your email and password.</p>
+
+    <form>
+      <label for="email">Email</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        autocomplete="email"
+        placeholder="you@example.com"
+        required
+      />
+
+      <label for="password">Password</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Enter your password"
+        required
+      />
+
+      <button type="submit" id="submit">Sign in</button>
+    </form>
+  </main>
+  <script>
+    const submitButton = document.getElementById("submit");
+    const pathparts = window.location.pathname.split('/');
+    const name = pathparts[pathparts.length-2].trim();
+    const redirectionURL = pathparts[pathparts.length-1].trim();
+    if (name) {
+      document.getElementById("heading1").textContent = `Sign in with ${name}`;
+    }
+
+    submitButton.addEventListener("click", async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      if(!email || !password) {
+        alert("Please fill in both email and password.");
+      }
+
+      const user = await fetch('http://localhost:3000/o/user-authenticate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },  
+        body: JSON.stringify({ email, password })
+      })
+
+      const result = await user.json();
+
+      const actualRedirectUrl = decodeURIComponent(redirectionURL);
+      window.location.href = `${actualRedirectUrl}?shortCode=${result.data.shortCode}`;
+    });
+
+
+  </script>
+</body>
+</html>

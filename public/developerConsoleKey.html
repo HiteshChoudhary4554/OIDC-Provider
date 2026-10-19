@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f5f7fb" />
+  <title>Application Keys - Developer Console</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      display: grid;
+      min-height: 100vh;
+      margin: 0;
+      place-items: center;
+      padding: 24px;
+      background: #f5f7fb;
+      color: #202938;
+      font: 15px/1.5 system-ui, sans-serif;
+    }
+
+    main {
+      width: min(100%, 620px);
+      padding: 32px;
+      border: 1px solid #e3e8ef;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 12px 36px #172b4d12;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      letter-spacing: -0.03em;
+    }
+
+    .intro {
+      margin: 8px 0 24px;
+      color: #667085;
+    }
+
+    .credential {
+      margin-top: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 600;
+    }
+
+    .credential-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    input {
+      min-width: 0;
+      flex: 1;
+      padding: 11px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      background: #f8fafc;
+      color: inherit;
+      font: inherit;
+    }
+
+    button {
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 7px;
+      background: #245fdb;
+      color: #fff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      background: #194db9;
+    }
+
+    button:focus-visible {
+      outline: 3px solid #3974e866;
+      outline-offset: 3px;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .message {
+      min-height: 24px;
+      margin: 16px 0 0;
+      color: #b42318;
+    }
+
+    .message.success {
+      color: #067647;
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding: 24px 20px;
+      }
+
+      .credential-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Application keys</h1>
+    <p class="intro">Copy and securely save these credentials.</p>
+
+    <div class="credential">
+      <label for="clientId">Client ID</label>
+      <div class="credential-row">
+        <input id="clientId" type="text" readonly aria-label="Client ID" />
+        <button type="button" data-copy="clientId" disabled>Copy</button>
+      </div>
+    </div>
+
+    <div class="credential">
+      <label for="secretId">Client secret</label>
+      <div class="credential-row">
+        <input id="secretId" type="text" readonly aria-label="Client secret" />
+        <button type="button" data-copy="secretId" disabled>Copy</button>
+      </div>
+    </div>
+
+    <p class="message" id="message" role="status" aria-live="polite"></p>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const clientId = params.get("clientId") || "";
+    const secretId = params.get("secretId") || params.get("clientSecret") || "";
+    const message = document.getElementById("message");
+
+    document.getElementById("clientId").value = clientId;
+    document.getElementById("secretId").value = secretId;
+
+    document.querySelectorAll("[data-copy]").forEach((button) => {
+      const input = document.getElementById(button.dataset.copy);
+      button.disabled = !input.value;
+
+      button.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(input.value);
+          message.textContent = `${button.dataset.copy === "clientId" ? "Client ID" : "Client secret"} copied.`;
+          message.classList.add("success");
+        } catch (error) {
+          message.textContent = "Could not copy to clipboard. Check browser clipboard permissions.";
+          message.classList.remove("success");
+        }
+      });
+    });
+
+    if (!clientId || !secretId) {
+      message.textContent = "Missing credentials. Open this page with clientId and secretId query parameters.";
+    }
+  </script>
+</body>
+</html>

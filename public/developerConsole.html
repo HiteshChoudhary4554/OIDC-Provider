@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Developer Console</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.5 system-ui, sans-serif;
+      color: #202938;
+      background: #f5f7fb;
+    }
+    main { max-width: 760px; margin: 56px auto; padding: 0 20px; }
+    h1 { margin-bottom: 8px; }
+    .muted { color: #667085; margin-top: 0; }
+    .panel, .app {
+      background: #fff;
+      border: 1px solid #e3e8ef;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 16px #172b4d0a;
+    }
+    label { display: block; font-weight: 600; margin: 18px 0 6px; }
+    input, select {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 7px;
+      font: inherit;
+    }
+    input:focus, select:focus {
+      outline: 2px solid #9bbcff;
+      border-color: #3974e8;
+    }
+    button {
+      margin-top: 22px;
+      padding: 11px 17px;
+      border: 0;
+      border-radius: 7px;
+      background: #245fdb;
+      color: white;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #194db9; }
+    #apps { display: grid; gap: 12px; margin-top: 16px; }
+    .app h3 { margin: 0 0 8px; }
+    .app p { margin: 5px 0; overflow-wrap: anywhere; }
+    .empty { color: #667085; }
+    .message { min-height: 22px; color: #b42318; margin: 10px 0 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Developer Console</h1>
+    <p class="muted">Register an application and configure its OIDC provider.</p>
+
+    <form class="panel" id="appForm">
+      <label for="appName">App name</label>
+      <input id="appName" name="appName" required maxlength="100"
+             placeholder="e.g. Customer Portal" />
+
+      <label for="redirectUrl">Redirect URL</label>
+      <input id="redirectUrl" name="redirectUrl" type="url" required
+             placeholder="https://example.com/auth/callback" />
+      <button type="submit" id="registerButton">Register app</button>
+      <p class="message" id="message" role="status"></p>
+    </form>
+    <script>
+        // refernce of register button
+        const registerButton = document.querySelector('#registerButton');
+
+        registerButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const appName = document.querySelector('#appName').value;
+            const redirectUrl = document.querySelector('#redirectUrl').value;
+
+            if (!appName || !redirectUrl) {
+              window.alert("both field are required..");
+              return;
+            }
+
+
+            const response = await fetch('http://localhost:3000/o/submit-developer-form', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: appName, redirectUrl })
+            });
+
+            const result = await response.json();
+
+            const url = `http://localhost:3000/o/developer-key?clientId=${result.data.clientId}&secretId=${result.data.clientSecret}`;
+
+            window.location.href = url;  
+        });
+    </script>
+    </body>
+</html>
