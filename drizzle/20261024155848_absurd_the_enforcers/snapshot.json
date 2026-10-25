@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "d67f98a6-fb50-4b5b-a8f1-f46e98a6d6fa",
+  "id": "52b9332e-53dc-4816-af94-d16437dbe3f9",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -170,6 +170,19 @@
       "generated": null,
       "identity": null,
       "name": "salt",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "varchar(12)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "short_code",
       "entityType": "columns",
       "schema": "public",
       "table": "users"

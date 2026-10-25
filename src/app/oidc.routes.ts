@@ -7,10 +7,9 @@ import { developerAppPayloadModel } from './auth/models.js';
 import db from "../db/index.js";
 import { appsTable, usersTable } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
-import { randomBytes, createHmac } from 'node:crypto';
 import { signinPayloadModel } from './auth/models.js';
-import { createShortCode, verifyShortCode } from '../utils/codeToken.js';
 import { generateUserToken, verifyUserToken } from '../utils/tokenGenKey.js';
+import { hashToken, randomStringGenerate } from '../utils/hashToken.js';
 
 
 
@@ -18,10 +17,6 @@ const router : Router = express.Router();
 const PORT = process.env.PORT;
 
 //#region developer console
-
-function randomStringGenerate() {
-    return randomBytes(8).toString("hex").slice(0, 10);
-}
 
 router.get('/o/developer-console', (req, res) => {
     return res.sendFile(path.resolve("public", "developerConsole.html"));
@@ -38,15 +33,14 @@ router.post('/o/submit-developer-form', async (req, res) => {
             message : "field are allowed.."
         })
     }
-
-    const clientId = randomStringGenerate();
-    const clientSecret = randomStringGenerate();
+    const clientId = await randomStringGenerate();
+    const clientSecret = await randomStringGenerate();
     
 const developerConsoleUser = await db
   .insert(appsTable)
   .values({
     name: validateData.data.name,
-    clientId,
+    clientId, 
     clientSecret,
     redirectUrl: validateData.data.redirectUrl,
   })
@@ -61,8 +55,8 @@ const developerConsoleUser = await db
         message : "success",
         data : {
             id : developerConsoleUser[0]?.id,
-            clientId : developerConsoleUser[0]?.clientId,
-            clientSecret : developerConsoleUser[0]?.clientSecret
+            clientId ,
+            clientSecret
         }
     })
 
@@ -71,7 +65,7 @@ const developerConsoleUser = await db
 
 //#region configuration discovery
 router.get('/.well-known/openid-configuration', (req, res) => {
-    const ISSUER = `https://localhost:${PORT}`;
+    const ISSUER = `http://localhost:${PORT}`;
     return res.status(200).json(
         {
             "ISSUER": ISSUER,
@@ -94,7 +88,7 @@ router.get('/.well-known/jwks.json',async (req, res) => {
 //#region authenticate screen
 router.get('/o/signin/:clientId', async (req, res) => {
     const clientId = req.params.clientId;
-    
+
     const isClient = await db.select().from(appsTable).where(eq(appsTable.clientId,clientId));
     
     const client = isClient[0];
@@ -129,13 +123,20 @@ router.post('/o/user-authenticate', async (req, res) => {
     })
 
     const salt = user!.salt!;
-    const hash = createHmac('sha256',salt).update(validateData.data.password).digest('hex');
+    const hash = await hashToken({salt, token: validateData.data.password})
 
     if (user?.password !== hash) res.status(403).json({
             message : "Invalid email and password"
     })
 
-    const shortCode = await createShortCode({id : user!.id});
+    const shortCode = await randomStringGenerate();
+    const hashShortCode = await hashToken({salt :process.env.SALT!, token :  shortCode });
+     
+    //@ts-ignore
+    user.shortCode = hashShortCode ;
+
+    //@ts-ignore
+    await user?.save();    
 
     return res.status(200).json({
         message : "Success",
@@ -143,6 +144,7 @@ router.post('/o/user-authenticate', async (req, res) => {
             shortCode,
         }})
 })
+
 //#endregion
 
 //#region token generate
@@ -155,13 +157,6 @@ router.get('/o/token/:shortCode/:secret_id',async (req, res) => {
         message : `missing....`
     })
 
-    const isShortCode = await verifyShortCode(shortCode);
-
-    if (!isShortCode) return res.status(400).json({
-        error : "Invalid short code or secret id",
-        message : `missing....`
-    })
-
     const isSecretId = await db.select().from(appsTable).where(eq(appsTable.clientSecret,secret_id));
 
     if (!isSecretId.length) return res.status(400).json({
@@ -170,12 +165,21 @@ router.get('/o/token/:shortCode/:secret_id',async (req, res) => {
     })
 
     if(isSecretId[0]?.clientSecret !== secret_id) return res.status(400).json({
-        error : "Invalid secret id",
+        error : "Invalid secret id or short code",
         message : `missing....`
     })
 
-    //token generate 
-    const token = await generateUserToken({id : isShortCode.id});
+
+    const hashShortCode = await hashToken({salt :process.env.SALT!, token :  shortCode });
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.shortCode,hashShortCode));
+
+
+    if (!user) return res.status(400).json({
+        error : "Invalid short code or secret id",
+        message : `missing....`
+    })
+
+    const token = generateUserToken({ id : user.id! });
 
     return res.status(200).json({
         message : "Success",
@@ -196,21 +200,26 @@ router.get('/o/userinfo/:token', async (req, res) => {
         message : `missing....` 
     });
 
-    const isToken = await verifyUserToken(token);
+    const isToken = verifyUserToken(token);
 
-    if(!isToken) return res.status(400).json({
+    if(!isToken) return res.status(403).json({
         error : "Invalid token",
         message : `missing....` 
     });
 
-    const userData = await db.select().from(usersTable).where(eq(usersTable.id,isToken.id));
+    const [userData] = await db.select().from(usersTable).where(eq(usersTable.id,isToken.id));
+
+    if(!userData) return res.status(403).json({
+        error : "invalid token in db",
+        message : `missing....` 
+    });
+
+
 
     return res.status(200).json({
-        message : "Success",
-        data : {
-            userData : userData[0]
-        }
-    })
+        name: `${userData.firstName} ${userData.lastName}`,
+        email: userData.email,
+    });
 });
 //#endregion
 

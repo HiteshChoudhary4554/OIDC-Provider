@@ -3,7 +3,7 @@ import { signupPayloadModel } from './models.js';
 import db from "../../db/index.js";
 import { usersTable } from "../../db/schema.js";
 import { eq } from "drizzle-orm";
-import { createHmac, randomBytes } from "node:crypto";
+import { hashToken, randomStringGenerate } from "../../utils/hashToken.js";
 
 
 async function handleSignup(req : Request, res : Response) {
@@ -20,8 +20,8 @@ async function handleSignup(req : Request, res : Response) {
         message : `user with email ${email} already exists`
     })
 
-    const salt = randomBytes(32).toString('hex');
-    const hash = createHmac('sha256',salt).update(password).digest("hex");
+    const salt = await randomStringGenerate();
+    const hash = await hashToken({ salt, token :  validateDataResult.data?.password! });
 
     const [result] = await db.insert(usersTable).values({
         firstName,

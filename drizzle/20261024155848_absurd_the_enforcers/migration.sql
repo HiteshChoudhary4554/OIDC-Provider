@@ -14,6 +14,7 @@ CREATE TABLE "users" (
 	"email_verified" boolean DEFAULT false NOT NULL,
 	"password" varchar(66),
 	"salt" text,
+	"short_code" varchar(12),
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp
 );
