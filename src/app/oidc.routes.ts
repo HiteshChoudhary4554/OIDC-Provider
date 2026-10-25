@@ -213,11 +213,12 @@ router.get('/o/userinfo/:token', async (req, res) => {
         message : `missing....` 
     });
 
-
-
     return res.status(200).json({
-        name: `${userData.firstName} ${userData.lastName}`,
-        email: userData.email,
+        id : userData.id,
+        email : userData.email,
+        name : `${userData.firstName} ${userData.lastName}`,
+        createdAt : userData.createdAt,
+        updatedAt : userData.updatedAt
     });
 });
 //#endregion
