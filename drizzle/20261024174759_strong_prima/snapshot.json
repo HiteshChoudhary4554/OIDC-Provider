@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "52b9332e-53dc-4816-af94-d16437dbe3f9",
+  "id": "20f07d2b-52db-4d2f-aa91-0786699275cd",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -175,7 +175,7 @@
       "table": "users"
     },
     {
-      "type": "varchar(12)",
+      "type": "varchar",
       "typeSchema": null,
       "notNull": false,
       "dimensions": 0,

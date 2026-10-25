@@ -9,7 +9,9 @@ import { hashToken, randomStringGenerate } from "../../utils/hashToken.js";
 async function handleSignup(req : Request, res : Response) {
     const validateDataResult = await signupPayloadModel.safeParseAsync(req.body);
 
-    if (validateDataResult.error) res.status(400).json({message : "body validation failed", error : validateDataResult.error.issues});
+    if (validateDataResult.error) {
+        return res.status(400).json({message : "body validation failed", error : validateDataResult.error.issues});
+    }
 
     const {firstName, lastName, email, password}  = validateDataResult.data!;
 

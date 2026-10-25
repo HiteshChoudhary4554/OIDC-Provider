@@ -128,7 +128,7 @@
   <script>
     const submitButton = document.getElementById("submit");
     const pathparts = window.location.pathname.split('/');
-    const name = pathparts[pathparts.length-2].trim();
+    const name = decodeURIComponent(pathparts[pathparts.length-2].trim());
     const redirectionURL = pathparts[pathparts.length-1].trim();
     if (name) {
       document.getElementById("heading1").textContent = `Sign in with ${name}`;

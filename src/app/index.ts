@@ -15,6 +15,7 @@ export function createServerApplication():Express {
     //#endregion
 
     //#region register Routes
+    app.use("/auth", authRouter);
     app.use("/o/", authRouter);
     //#endregion
 

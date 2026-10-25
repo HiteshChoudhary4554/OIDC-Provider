@@ -131,12 +131,11 @@ router.post('/o/user-authenticate', async (req, res) => {
 
     const shortCode = await randomStringGenerate();
     const hashShortCode = await hashToken({salt :process.env.SALT!, token :  shortCode });
-     
-    //@ts-ignore
-    user.shortCode = hashShortCode ;
+    
 
-    //@ts-ignore
-    await user?.save();    
+    await db.update(usersTable)
+        .set({ shortCode: hashShortCode })
+        .where(eq(usersTable.id, user!.id));    
 
     return res.status(200).json({
         message : "Success",
