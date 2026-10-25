@@ -89,6 +89,13 @@
       outline-offset: 3px;
     }
 
+    .signup-link {
+      display: block;
+      margin-top: 18px;
+      color: #245fdb;
+      text-align: center;
+    }
+
     @media (max-width: 480px) {
       .login-card {
         padding: 30px 24px;
@@ -124,6 +131,7 @@
 
       <button type="submit" id="submit">Sign in</button>
     </form>
+    <a class="signup-link" href="http://localhost:3000/auth/register">Sign up</a>
   </main>
   <script>
     const submitButton = document.getElementById("submit");
